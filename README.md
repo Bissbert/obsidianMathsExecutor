@@ -1,96 +1,151 @@
-# Obsidian Sample Plugin
+# obsidianMathsExecutor
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+`obsidianMathsExecutor` is named for an Obsidian plugin that would evaluate
+prepared LaTeX maths expressions in a vault. At the current commit it is still
+the Obsidian sample-plugin scaffold: it builds, registers demonstration UI and
+commands, and does not parse notes, evaluate maths, or write evaluated results
+back to a note. This README documents the code that is present and makes the
+missing execution path visible.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+```mermaid
+flowchart LR
+    N1["Note before<br/>prepared LaTeX"] -. "not implemented" .-> N2["Note after<br/>evaluated result"]
+    S["Current main.ts<br/>sample plugin"] --> D["Demo commands,<br/>settings and listeners"]
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
-
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
-
-## First time developing plugins?
-
-Quick starting guide for new plugin devs:
-
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
-
-## Releasing new releases
-
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
-
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
-
-## Adding your plugin to the community plugin list
-
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+    style S fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style D fill:#238636,stroke:#3fb950,color:#fff
+    style N2 fill:#da3633,stroke:#f85149,color:#fff
 ```
 
-If you have multiple URLs, you can also do:
+The before/after path is the name's intended shape, not a recording of current
+behaviour. No current command evaluates note content or performs that
+before/after transform.
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+## Quick start
+
+The development commands below were run successfully in this checkout with
+Node `v24.10.0` and npm `11.19.0`:
+
+```sh
+npm install
+npm run build
 ```
 
-## API Documentation
+The build type-checks `main.ts` and writes the generated `main.js`. To rebuild
+on every source change during development:
 
-See https://github.com/obsidianmd/obsidian-api
+```sh
+npm run dev
+```
+
+For a manual install, build first, then copy the generated bundle, manifest and
+stylesheet into a vault plugin directory. The current manifest id is
+`sample-plugin`, not `obsidian-maths-executor`:
+
+```sh
+VAULT=/path/to/YourVault
+PLUGIN_DIR="$VAULT/.obsidian/plugins/sample-plugin"
+mkdir -p "$PLUGIN_DIR"
+cp main.js manifest.json styles.css "$PLUGIN_DIR/"
+```
+
+Enable **Sample Plugin** under **Settings → Community plugins**. Copying files
+and enabling the plugin in a running Obsidian app was not verified here; see
+[`docs/measurement.md`](docs/measurement.md).
+
+The package declares `obsidian: latest`; the installed API package in the
+verification run was `1.13.1`. The manifest declares `minAppVersion` `0.15.0`.
+
+## Architecture
+
+The checked-in code has a build-and-load path, not a maths execution path:
+
+```mermaid
+flowchart TD
+    SRC["main.ts"] --> TSC["tsc --noEmit<br/>type check"]
+    TSC -->|"exit 0"| ESB["esbuild<br/>production bundle"]
+    TSC -->|"non-zero"| FAIL["build stops"]
+    ESB --> JS["main.js"]
+    MAN["manifest.json"] --> PKG[".obsidian/plugins/sample-plugin/"]
+    CSS["styles.css"] --> PKG
+    JS --> PKG
+    PKG --> OBS["Obsidian loads<br/>MyPlugin.onload"]
+    OBS --> UI["ribbon, status bar,<br/>commands, settings,<br/>registered listener and interval"]
+
+    style JS fill:#238636,stroke:#3fb950,color:#fff
+    style OBS fill:#238636,stroke:#3fb950,color:#fff
+    style FAIL fill:#da3633,stroke:#f85149,color:#fff
+```
+
+`obsidian`, Electron, CodeMirror, Lezer and Node built-ins are marked external
+by `esbuild.config.mjs`; Obsidian supplies those modules at runtime. The
+current `main.ts` is the sample plugin's runtime entry point.
+
+## Capability surface
+
+| Capability | Evidence in the current source | Status |
+|---|---|---|
+| Obsidian lifecycle | `Plugin.onload` and `Plugin.onunload` | Present |
+| Demo UI | Ribbon icon and desktop status bar item | Present |
+| Commands | Three sample command callback shapes | Present, sample only |
+| Settings | One `mySetting` field saved through `data.json` | Present, sample only |
+| Note parsing | No vault or Markdown parser code | Not present |
+| LaTeX extraction | No expression marker or extractor | Not present |
+| Maths functions/operators | No evaluator or operator table in source | None supported |
+| Evaluated write-back | Only a fixed sample editor replacement | Not present |
+
+In particular, the source defines no supported maths functions or operators.
+The full boundary and the desired execution flow are documented in
+[`docs/03-maths-executor-status.md`](docs/03-maths-executor-status.md).
+
+## Measured results
+
+The measurements below come from [`tools/measure.py`](tools/measure.py) and
+[`tools/verify_template.py`](tools/verify_template.py), run after
+`npm install`:
+
+| Check | Observed result |
+|---|---:|
+| Type check | exit 0, clean |
+| ESLint run | exit 0, clean |
+| Production build | exit 0, clean; 1.8 seconds in the recorded run |
+| `main.ts` | 3,877 bytes, 134 lines |
+| Generated `main.js` | 3,650 bytes, 3.6 KiB |
+| Template comparison | 13 of 14 files identical; `README.md` is the one changed file |
+
+The build times are wall-clock observations from one local run, not performance
+guarantees. The measurement method and all quoted toolchain versions are in
+[`docs/measurement.md`](docs/measurement.md).
+
+## Repository layout
+
+```text
+main.ts              sample Obsidian plugin entry point
+manifest.json        plugin id, version and minimum app version
+styles.css           stylesheet shipped with the plugin
+esbuild.config.mjs   development watcher and production bundler
+package.json         npm scripts and development dependencies
+tsconfig.json        TypeScript compiler configuration
+version-bump.mjs     version lifecycle helper
+versions.json        plugin version to minimum app version mapping
+docs/                component write-ups and measurement method
+tools/               reproducible measurement and template checks
+```
+
+`main.js` is generated and ignored by git. There is no committed `src/` tree,
+test suite, CI workflow, or `media/` directory in this checkout.
+
+## Known limitations
+
+- The maths executor is not implemented. Notes are not parsed, expressions are
+  not evaluated, and results are not written back.
+- `manifest.json` and `package.json` still identify the project as the sample
+  plugin. The current installed plugin id is `sample-plugin`.
+- `obsidian` is declared as `latest`, and no lockfile is committed, so a fresh
+  install can resolve different API typings over time.
+- The sample registers a global click logger and a five-minute interval. Both
+  are automatically cleaned up by Obsidian, but neither is maths functionality.
+- The declared minimum app version has not been tested against a running
+  Obsidian release in this pass.
+- No real plugin animation or screenshot is included: capturing one requires a
+  running Obsidian vault, which was not available for this pass.
